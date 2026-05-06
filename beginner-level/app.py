@@ -15,7 +15,8 @@ st.title("🤖 AI Agent")
 
 
 # Configuration from Environment Variables
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# Try to get from st.secrets (Streamlit Cloud) first, then os.getenv (local/standard env)
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
 BASE_URL = "https://api.groq.com/openai/v1"
 MODEL_NAME = "llama-3.3-70b-versatile"
 
@@ -61,7 +62,15 @@ with st.sidebar:
 
 # Main Chat Interface
 if not GROQ_API_KEY:
-    st.error("Missing `GROQ_API_KEY` environment variable. Please set it in a `.env` file.")
+    st.error("""
+    **Missing `GROQ_API_KEY`!**
+    
+    - **Locally:** Please set it in a `.env` file.
+    - **Streamlit Cloud:** Add it to your app's **Secrets** (App Settings -> Secrets) as:
+      ```toml
+      GROQ_API_KEY = "your_api_key_here"
+      ```
+    """)
     st.stop()
 
 # Determine what to display
