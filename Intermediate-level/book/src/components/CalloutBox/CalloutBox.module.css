@@ -1,0 +1,40 @@
+.calloutBox {
+  padding: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  display: flex;
+  align-items: flex-start;
+}
+
+.icon {
+  font-size: var(--icon-size, 20px); /* Default icon size, can be overridden */
+  margin-right: var(--spacing-sm);
+  line-height: 1; /* Align icon vertically */
+}
+
+.content {
+  flex-grow: 1;
+}
+
+/* Callout Box Types */
+.note {
+  border-color: #63B3ED; /* From physical-ai-book.spec.yaml */
+  background-color: #EBF8FF; /* From physical-ai-book.spec.yaml */
+}
+
+.tip {
+  border-color: #68D391; /* From physical-ai-book.spec.yaml */
+  background-color: #F0FFF4; /* From physical-ai-book.spec.yaml */
+}
+
+.warning {
+  border-color: #F6E05E; /* From physical-ai-book.spec.yaml */
+  background-color: #FFFFF0; /* From physical-ai-book.spec.yaml */
+}
+
+.insight {
+  border-color: #B794F4; /* From physical-ai-book.spec.yaml */
+  background-color: #FAF5FF; /* From physical-ai-book.spec.yaml */
+}

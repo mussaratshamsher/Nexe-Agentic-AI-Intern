@@ -1,0 +1,86 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.formContainer {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  text-align: center;
+}
+
+.formContainer h2 {
+  margin-bottom: 1.5rem;
+}
+
+.formContainer input {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+}
+
+.formContainer button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--ifm-color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--ifm-global-radius);
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.formContainer button:hover {
+  background-color: var(--ifm-color-primary-dark);
+}
+
+.formContainer button:disabled {
+  background-color: var(--ifm-color-emphasis-300);
+  cursor: not-allowed;
+}
+
+.error {
+  color: var(--ifm-color-danger);
+  margin-bottom: 1rem;
+}
+
+.success {
+  color: var(--ifm-color-success);
+  margin-bottom: 1rem;
+}
+
+.profileHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.profilePagePic {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--ifm-color-primary);
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.profilePagePic:hover {
+  transform: scale(1.05);
+}
+
+.separator {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}

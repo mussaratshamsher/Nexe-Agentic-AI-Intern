@@ -1,0 +1,7 @@
+.sectionBanner {
+  height: 200px; /* Using direct pixel value as per spec, or could use CSS variable if defined for fixed heights */
+  margin: var(--spacing-xxl) 0;
+  background-size: cover;
+  /* imagePlaceholder: "url('/assets/section-banner-placeholder.jpg')" */
+  background-image: url('/assets/section-banner-placeholder.jpg'); /* Placeholder image */
+}

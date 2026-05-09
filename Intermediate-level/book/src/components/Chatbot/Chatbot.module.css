@@ -1,0 +1,220 @@
+.chatbotContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  font-family: var(--ifm-font-family-base);
+}
+
+/* Floating Button */
+.chatbotIcon {
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-primary),
+    var(--ifm-color-primary-dark)
+  );
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.chatbotIcon:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* Chat Window */
+.chatbotWindow {
+  width: 380px;
+  height: 520px;
+  background-color: var(--ifm-background-surface-color);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.92) translateY(10px);
+  transform-origin: bottom right;
+  transition: all 0.25s ease;
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.chatbotWindow.open {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Header */
+.chatbotHeader {
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-primary),
+    var(--ifm-color-primary-dark)
+  );
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbotTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.chatbotClose {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.chatbotClose:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Messages */
+.chatMessages {
+  flex-grow: 1;
+  padding: 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--ifm-background-color);
+}
+
+/* Scrollbar */
+.chatMessages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chatMessages::-webkit-scrollbar-thumb {
+  background: var(--ifm-color-emphasis-300);
+  border-radius: 10px;
+}
+
+/* Message Bubble */
+.message {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  line-height: 1.45;
+  font-size: 0.9rem;
+  word-wrap: break-word;
+}
+
+/* User Message */
+.userMessage {
+  align-self: flex-end;
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-primary),
+    var(--ifm-color-primary-dark)
+  );
+  color: #fff;
+  border-bottom-right-radius: 6px;
+}
+
+/* Bot Message */
+.botMessage {
+  align-self: flex-start;
+  background-color: var(--ifm-color-emphasis-200);
+  color: var(--ifm-font-color-base);
+  border-bottom-left-radius: 6px;
+}
+
+/* Typing Indicator */
+.typingIndicator {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* Input Area */
+.chatInputArea {
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+  background-color: var(--ifm-background-surface-color);
+}
+
+/* Input */
+.chatInput {
+  flex-grow: 1;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 20px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  outline: none;
+  background-color: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+}
+
+.chatInput:focus {
+  border-color: var(--ifm-color-primary);
+}
+
+/* Send Button */
+.sendButton {
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-primary),
+    var(--ifm-color-primary-dark)
+  );
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.sendButton:hover {
+  transform: scale(1.05);
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sources */
+.sources {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  opacity: 0.9;
+  border-top: 1px dashed var(--ifm-color-emphasis-300);
+  padding-top: 0.5rem;
+}
+
+.sources ul {
+  padding-left: 1rem;
+  margin: 0.25rem 0 0;
+}
+
+.sources li {
+  margin-bottom: 0.25rem;
+}

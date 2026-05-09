@@ -1,0 +1,8 @@
+{
+  "label": "Cognitive Architectures",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Cognitive architectures enabling intelligent decision-making in humanoid robots."
+  }
+}

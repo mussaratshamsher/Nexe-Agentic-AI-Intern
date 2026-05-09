@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+groq
+google-genai
+qdrant-client>=1.11.0
+python-dotenv
+sentence-transformers
+tqdm
+openai

@@ -1,0 +1,38 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.Preface": {
+    "message": "Preface",
+    "description": "The label for category 'Preface' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Foundations": {
+    "message": "Foundations",
+    "description": "The label for category 'Foundations' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Brain": {
+    "message": "Brain",
+    "description": "The label for category 'Brain' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Simulation": {
+    "message": "Simulation",
+    "description": "The label for category 'Simulation' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.VLAs (Vision-Language-Actions)": {
+    "message": "VLAs (Vision-Language-Actions)",
+    "description": "The label for category 'VLAs (Vision-Language-Actions)' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.ROS2 Integration": {
+    "message": "ROS2 Integration",
+    "description": "The label for category 'ROS2 Integration' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Capstone Projects": {
+    "message": "Capstone Projects",
+    "description": "The label for category 'Capstone Projects' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Appendices": {
+    "message": "Appendices",
+    "description": "The label for category 'Appendices' in sidebar 'tutorialSidebar'"
+  }
+}

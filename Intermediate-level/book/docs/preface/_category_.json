@@ -1,0 +1,8 @@
+{
+  "label": "Preface",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Preface section describing the vision and scope of this book."
+  }
+}

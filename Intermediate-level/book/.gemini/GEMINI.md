@@ -1,0 +1,12 @@
+## Gemini Added Memories
+- Qdrant api key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.vHuybDBNalXVTwnB7FMkx6bvTfg_DQa4ccCL3ItPihs
+- The user needs to provide a valid Gemini API key to fix the data ingestion issue. The two keys they provided previously were expired.
+- The user needs to provide a valid Gemini API key to fix the data ingestion issue. The two keys they provided previously were expired.
+- The user needs to provide a valid Gemini API key to fix the data ingestion issue. The two keys they provided previously were expired.
+- The user needs to provide a valid Gemini API key to fix the data ingestion issue. The two keys they provided previously were expired.
+- The user needs to provide a valid Gemini API key. All three keys provided so far have been expired. The code has been refactored and is ready for ingestion.
+- The user keeps providing expired Gemini API keys. I need a new, valid key to proceed with the ingestion.
+- The user is repeatedly providing the same expired Gemini API key. A new, valid, and verified Gemini API key is required to proceed with the data ingestion.
+- The user is unable to provide a working Gemini API key. I have provided a Python script to help them test their keys independently and advised them to check their Google AI Studio project settings.
+- The user's project has been pushed to the new repository: https://github.com/mussaratshamsher/AI_TextBook_Backend
+- The user's project has been pushed to the new repository: https://github.com/mussaratshamsher/FullStack_Physical_AI_and_Humanoid_Robotics_TextBook

@@ -1,0 +1,8 @@
+{
+  "label": "Advanced Documentation Features",
+  "position": 10,
+  "link": {
+    "type": "generated-index",
+    "description": "Advanced features for robotics documentation including versioning and internationalization."
+  }
+}

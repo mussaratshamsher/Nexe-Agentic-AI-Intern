@@ -1,0 +1,28 @@
+.authButtonContainer {
+  display: flex;
+  align-items: center;
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+}
+
+.profileLink {
+  margin-right: 1rem;
+  font-weight: bold;
+}
+
+.logoutButton {
+  background-color: transparent;
+  border: 1px solid var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: var(--ifm-button-border-radius);
+}
+
+.logoutButton:hover {
+  background-color: var(--ifm-color-primary);
+  color: white;
+}

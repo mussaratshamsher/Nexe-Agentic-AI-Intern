@@ -1,0 +1,57 @@
+.features {
+  padding: 6rem 0;
+  background-color: var(--color-background);
+}
+
+.featureCard {
+  padding: 3rem 2rem;
+  height: 100%;
+  border-radius: 20px;
+  border: 1px solid var(--color-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.featureCard:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background-color: var(--color-code-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+  color: var(--color-primary);
+  font-size: 2.5rem;
+  transition: transform 0.3s ease;
+}
+
+.featureCard:hover .iconWrapper {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.featureTitle {
+  font-weight: 800;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.featureDescription {
+  color: var(--color-text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+

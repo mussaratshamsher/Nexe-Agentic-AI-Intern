@@ -1,0 +1,8 @@
+{
+  "label": "Documentation Fundamentals",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Learn the fundamentals of creating technical documentation for robotics projects."
+  }
+}

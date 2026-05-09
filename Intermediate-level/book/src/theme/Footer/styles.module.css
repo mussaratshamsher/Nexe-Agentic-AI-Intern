@@ -1,0 +1,90 @@
+/**
+ * CSS styles for the Footer component.
+ */
+
+.footer {
+  padding: 2rem 0;
+  background-color: var(--ifm-footer-background-color);
+  color: var(--ifm-footer-color);
+  text-align: center;
+}
+
+.footer__link-item {
+  color: var(--ifm-footer-link-color);
+}
+
+.footer__link-item:hover {
+  color: var(--ifm-footer-link-hover-color);
+  text-decoration: none;
+}
+
+.footer__title {
+  color: var(--ifm-footer-title-color);
+}
+
+.footer__bottom {
+  margin-top: 2rem;
+}
+
+.footerLogo {
+  max-width: 150px; /* Adjust as needed */
+  margin-bottom: 1rem;
+}
+
+.footer__copyright {
+  font-size: 0.9rem;
+}
+
+/* New styles for professional book footer */
+.footerAdditionalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .footerAdditionalLinks {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.footerAbout,
+.footerSocial {
+  flex: 1;
+  min-width: 250px; /* Ensures columns don't get too small */
+  margin: 1rem;
+}
+
+.footerAbout p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ifm-color-secondary-darkest);
+}
+
+.footerSocial .socialLinks {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  justify-content: flex-start; /* Align social links to the left */
+}
+
+@media (max-width: 768px) {
+  .footerSocial .socialLinks {
+    justify-content: center; /* Center social links on smaller screens */
+  }
+}
+
+.footerSocial .socialLink {
+  color: var(--ifm-color-primary); /* Use a primary color for links */
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.footerSocial .socialLink:hover {
+  color: var(--ifm-color-primary-dark);
+  text-decoration: underline;
+}
