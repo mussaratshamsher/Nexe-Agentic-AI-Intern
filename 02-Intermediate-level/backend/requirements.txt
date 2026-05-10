@@ -8,3 +8,7 @@ python-dotenv
 sentence-transformers
 tqdm
 openai
+tavily-python
+resend
+firebase-admin
+python-multipart

@@ -1,5 +1,6 @@
 // Firebase configuration
-// Using direct values since process.env doesn't work in client-side JavaScript in Docusaurus
+// Environment variables are passed via customFields in docusaurus.config.ts
+// For client-side access, we handle the case where process.env might not be available
 const firebaseConfig = {
   apiKey: "AIzaSyDgXT19xa_W6y94wdyN1K4HDSNHAM7EYEU",
   authDomain: "physical-ai-auth-fa9d8.firebaseapp.com",
@@ -9,4 +10,6 @@ const firebaseConfig = {
   appId: "1:269476831492:web:2253cdbc8b7a93ea867051"
 };
 
+// If you want to use environment variables in production, 
+// they are injected into the site metadata by Docusaurus.
 export default firebaseConfig;

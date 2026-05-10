@@ -218,3 +218,156 @@
 .sources li {
   margin-bottom: 0.25rem;
 }
+
+/* Tool Badge */
+.toolBadge {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 0.6rem;
+  color: var(--ifm-color-emphasis-700);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Upload Button */
+.uploadButton {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.uploadButton:hover {
+  transform: scale(1.15);
+}
+
+/* Upload Toast */
+.uploadToast {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 10001;
+}
+
+/* Login Required */
+.loginRequired {
+  flex-grow: 1;
+  text-align: center;
+  padding: 10px;
+}
+
+.loginRequired p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.loginLink {
+  display: inline-block;
+  margin-top: 5px;
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.loginLink:hover {
+  text-decoration: underline;
+}
+
+/* File List */
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fileItem {
+  background: var(--ifm-color-emphasis-100);
+  padding: 10px 14px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.fileName {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ifm-font-color-base);
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileDate {
+  font-size: 0.75rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* Message Actions */
+.messageActions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.actionButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Email Form */
+.emailForm {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.emailInput {
+  flex-grow: 1;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  outline: none;
+}
+
+.emailSendButton {
+  background: var(--ifm-color-primary);
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.emailSendButton:hover {
+  opacity: 0.9;
+}

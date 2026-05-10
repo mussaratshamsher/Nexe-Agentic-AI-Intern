@@ -100,8 +100,7 @@ function Login() {
             {isSubmitting ? 'Please wait...' : 'Sign in with Google'}
           </button>
           <p>
-            Don't have an account? <a href="/signup">Sign up</a> |{' '}
-            <a href="/forgot-password">Forgot Password?</a>
+            Don't have an account? <a href="/signup">Sign up</a>
           </p>
         </div>
       </div>

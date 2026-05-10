@@ -1,37 +1,129 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import styles from './Chatbot.module.css';
+import { useAuth } from '../../auth/AuthContext';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 interface Message {
   id: number;
   text: string;
   sender: 'user' | 'bot';
   sources?: string[];
+  tool_used?: string;
 }
 
 const Chatbot = () => {
+  const { user } = useAuth();
+  const { siteConfig } = useDocusaurusContext();
+  const BACKEND_URL = (siteConfig.customFields?.backendUrl as string) || 'http://localhost:8000';
+  
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [showFiles, setShowFiles] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const initialMessage: Message = {
     id: 1,
-    text: 'How can I help you today?',
+    text: 'Hi! I am your Physical AI Agent. I can search the book, the web, save notes, or email you info. How can I help?',
     sender: 'bot',
   };
+
+  const [messages, setMessages] = useState<Message[]>([initialMessage]);
+
+  // Load messages from localStorage on mount or when user changes
+  useEffect(() => {
+    if (user?.email) {
+      const savedMessages = localStorage.getItem(`chat_history_${user.email}`);
+      if (savedMessages) {
+        try {
+          setMessages(JSON.parse(savedMessages));
+        } catch (e) {
+          console.error('Error parsing saved messages:', e);
+          setMessages([initialMessage]);
+        }
+      } else {
+        setMessages([initialMessage]);
+      }
+    } else {
+      setMessages([initialMessage]);
+    }
+  }, [user]);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (user?.email && messages.length > 0) {
+      localStorage.setItem(`chat_history_${user.email}`, JSON.stringify(messages));
+    }
+  }, [messages, user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const [messages, setMessages] = useState<Message[]>([initialMessage]);
-
   useEffect(() => {
     scrollToBottom();
   }, [messages, isOpen]);
 
+  const fetchFiles = async () => {
+    if (!user) {
+      console.log('No user logged in, skipping fetchFiles');
+      return;
+    }
+    try {
+      console.log(`Fetching files for user: ${user.email}`);
+      const response = await fetch(`${BACKEND_URL}/files?user_email=${user.email}`);
+      const data = await response.json();
+      if (data.error) {
+        console.error('Backend error fetching files:', data.error);
+        setUploadStatus(`Error: ${data.error}`);
+        setTimeout(() => setUploadStatus(''), 5000);
+      }
+      setUploadedFiles(data.files || []);
+    } catch (error) {
+      console.error('Network error fetching files:', error);
+      setUploadStatus('Network error fetching files');
+      setTimeout(() => setUploadStatus(''), 5000);
+    }
+  };
+
+  useEffect(() => {
+    if (showFiles) {
+      fetchFiles();
+    }
+  }, [showFiles]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploadStatus('Uploading...');
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('user_email', user.email);
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        setUploadStatus('✅ Uploaded!');
+        fetchFiles();
+        setTimeout(() => setUploadStatus(''), 3000);
+      } else {
+        setUploadStatus('❌ Failed');
+      }
+    } catch (error) {
+      setUploadStatus('❌ Error');
+    }
+  };
+
   const handleSend = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputValue.trim() || isLoading || !user) return;
 
     const currentInputValue = inputValue;
     const userMessage: Message = {
@@ -40,162 +132,208 @@ const Chatbot = () => {
       sender: 'user'
     };
 
-    setMessages(prev => [...prev, userMessage]); // Optimistically update UI
+    setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
 
     try {
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-
-      // API call to backend - use environment variable if available
-      const API_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://ai-textbook-backend.railway.app/query' // Fallback to a placeholder or user's prod URL
-        : 'http://localhost:8000/query';
+      const API_URL = `${BACKEND_URL}/query`;
 
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question: currentInputValue,
+          user_email: user.email
         })
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const data = await response.json();
 
       const botMessage: Message = {
         id: Date.now() + 1,
-        text: data.answer || 'Sorry, I couldn\'t process your request.',
+        text: data.answer,
         sender: 'bot',
         sources: data.sources,
+        tool_used: data.tool_used
       };
 
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
-
       const errorMessage: Message = {
         id: Date.now() + 1,
-        text: 'Sorry, I encountered an error. Please try again later.',
+        text: 'Sorry, I encountered an error. Is the backend running?',
         sender: 'bot'
       };
-
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  const [emailingMessageId, setEmailingMessageId] = useState<number | null>(null);
+  const [targetEmail, setTargetEmail] = useState('');
 
-  const toggleChat = () => {
-    setIsOpen(!isOpen);
-  };
+  const handleSendEmail = async (content: string) => {
+    if (!targetEmail || !user) return;
 
-  const handleIconKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggleChat();
+    try {
+      const response = await fetch(`${BACKEND_URL}/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: `Email this content to ${targetEmail}: ${content}`,
+          user_email: user.email
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setEmailingMessageId(null);
+        setTargetEmail('');
+        alert(data.answer || 'Email process completed!');
+      } else {
+        alert('Error: ' + (data.detail || 'Failed to send email request'));
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('Network error while sending email.');
     }
   };
 
   return (
     <div className={styles.chatbotContainer}>
       {isOpen ? (
-        <div className={`${styles.chatbotWindow} ${isOpen ? styles.open : ''}`}>
+        <div className={`${styles.chatbotWindow} ${styles.open}`}>
           <div className={styles.chatbotHeader}>
-            <div className={styles.chatbotTitle}>Physical AI Assistant</div>
-            <button
-              className={styles.chatbotClose}
-              onClick={toggleChat}
-              aria-label="Close chat"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-
-          <div className={styles.chatMessages}>
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`${styles.message} ${
-                  message.sender === 'user' ? styles.userMessage : styles.botMessage
-                }`}
+            <div className={styles.chatbotTitle}>
+               {showFiles ? 'My Uploaded Files' : 'Physical AI Agent'}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                className={styles.chatbotClose} 
+                onClick={() => setShowFiles(!showFiles)}
+                title={showFiles ? "Back to Chat" : "View Files"}
               >
-                <p dangerouslySetInnerHTML={{ __html: message.text.replace(/\n/g, '<br />') }} />
-                {message.sources && message.sources.length > 0 && (
-                  <div className={styles.sources}>
-                    <strong>Sources:</strong>
-                    <ul>
-                      {message.sources.map((source, i) => (
-                        <li key={i}>{source}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {isLoading && (
-              <div className={`${styles.message} ${styles.botMessage} ${styles.typingIndicator}`}>
-                Thinking...
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+                {showFiles ? '💬' : '📁'}
+              </button>
+              <button className={styles.chatbotClose} onClick={() => setIsOpen(false)}>✕</button>
+            </div>
           </div>
+
+          {showFiles ? (
+            <div className={styles.chatMessages}>
+              {uploadedFiles.length === 0 ? (
+                <div className={styles.botMessage} style={{ padding: '20px', textAlign: 'center' }}>
+                  No files uploaded yet.
+                </div>
+              ) : (
+                <div className={styles.fileList}>
+                  {uploadedFiles.map((file, idx) => (
+                    <div key={idx} className={styles.fileItem}>
+                      <span className={styles.fileName}>{file.filename}</span>
+                      <span className={styles.fileDate}>{new Date(file.timestamp).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className={styles.chatMessages}>
+              {messages.map((message) => (
+                <div key={message.id} className={`${styles.message} ${message.sender === 'user' ? styles.userMessage : styles.botMessage}`}>
+                  <p dangerouslySetInnerHTML={{ __html: message.text.replace(/\n/g, '<br />') }} />
+                  {message.tool_used && (
+                    <span className={styles.toolBadge}>Tool: {message.tool_used}</span>
+                  )}
+                  
+                  {message.sender === 'bot' && message.id !== 1 && (
+                    <div className={styles.messageActions}>
+                      <button 
+                        className={styles.actionButton} 
+                        onClick={() => {
+                          setEmailingMessageId(emailingMessageId === message.id ? null : message.id);
+                          setTargetEmail(user?.email || '');
+                        }}
+                        title="Email this content"
+                      >
+                        📧
+                      </button>
+                    </div>
+                  )}
+
+                  {emailingMessageId === message.id && (
+                    <div className={styles.emailForm}>
+                      <input 
+                        type="email" 
+                        placeholder="Recipient email"
+                        value={targetEmail}
+                        onChange={(e) => setTargetEmail(e.target.value)}
+                        className={styles.emailInput}
+                      />
+                      <button 
+                        onClick={() => handleSendEmail(message.text)}
+                        className={styles.emailSendButton}
+                      >
+                        Send
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {isLoading && <div className={styles.typingIndicator}>Thinking...</div>}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
 
           <div className={styles.chatInputArea}>
-            <textarea
-              className={styles.chatInput}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask about Physical AI & Humanoid Robotics..."
-              rows={1}
-              disabled={isLoading}
-            />
-            <button
-              className={styles.sendButton}
-              onClick={handleSend}
-              disabled={!inputValue.trim() || isLoading}
-              aria-label="Send message"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="white">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-              </svg>
-            </button>
+            {!user ? (
+              <div className={styles.loginRequired}>
+                <p>Please log in to use the AI Agent</p>
+                <a href="/login" className={styles.loginLink}>Login Here</a>
+              </div>
+            ) : (
+              <>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleFileUpload}
+                  accept=".txt,.md"
+                />
+                <button 
+                  className={styles.uploadButton} 
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Upload Knowledge"
+                  disabled={showFiles}
+                >
+                  📎
+                </button>
+                <textarea
+                  className={styles.chatInput}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                  placeholder="Ask, search, save, or email..."
+                  rows={1}
+                  disabled={showFiles}
+                />
+                <button 
+                  className={styles.sendButton} 
+                  onClick={handleSend} 
+                  disabled={isLoading || showFiles}
+                >
+                  ➤
+                </button>
+              </>
+            )}
           </div>
+          {uploadStatus && <div className={styles.uploadToast}>{uploadStatus}</div>}
         </div>
       ) : (
-        <div
-          className={styles.chatbotIcon}
-          onClick={toggleChat}
-          onKeyDown={handleIconKeyDown}
-          role="button"
-          tabIndex={0}
-          aria-label="Open chatbot"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 8V4H8" />
-            <rect width="16" height="12" x="4" y="8" rx="2" />
-            <path d="M2 14h2" />
-            <path d="M20 14h2" />
-            <path d="M15 13v2" />
-            <path d="M9 13v2" />
-          </svg>
+        <div className={styles.chatbotIcon} onClick={() => setIsOpen(true)}>
+          🤖
         </div>
       )}
     </div>

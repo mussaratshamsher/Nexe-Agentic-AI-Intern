@@ -1,22 +1,22 @@
 {
   "link.title.Social": {
-    "message": "Social",
+    "message": "سوشل",
     "description": "The title of the footer links column with title=Social in the footer"
   },
   "link.item.label.GitHub": {
-    "message": "GitHub",
+    "message": "گٹ ہب",
     "description": "The label of footer link with label=GitHub linking to https://github.com/mussaratshamsher"
   },
   "link.item.label.Twitter": {
-    "message": "Twitter",
+    "message": "ٹویٹر",
     "description": "The label of footer link with label=Twitter linking to https://twitter.com/Physical_AI"
   },
   "link.item.label.LinkedIn": {
-    "message": "LinkedIn",
+    "message": "لنکڈ ان",
     "description": "The label of footer link with label=LinkedIn linking to https://www.linkedin.com/in/mussarat-shamsher-7618a6380/"
   },
   "copyright": {
-    "message": "Copyright © 2025 Physical AI Press. All rights reserved.",
+    "message": "کاپی رائٹ © 2025 فزیکل AI پریس۔ جملہ حقوق محفوظ ہیں۔",
     "description": "The footer copyright"
   }
 }

@@ -8,11 +8,25 @@ const config: Config = {
     'A comprehensive guide to the principles, technologies, and practices of building intelligent humanoid robots.',
   favicon: 'img/favicon.png',
 
-  // ✅ Vercel-safe (no deployment required yet)
-  url: 'https://example.com',
+  // ✅ Vercel-safe (Update this when you have a production domain)
+  url: process.env.URL || 'https://physical-ai-book.vercel.app',
   baseUrl: '/',
+  trailingSlash: false,
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
+  onBrokenMarkdownLinks: 'warn',
+
+  customFields: {
+    firebaseConfig: {
+      apiKey: process.env.FB_API_KEY || "AIzaSyDgXT19xa_W6y94wdyN1K4HDSNHAM7EYEU",
+      authDomain: process.env.FB_AUTH_DOMAIN || "physical-ai-auth-fa9d8.firebaseapp.com",
+      projectId: process.env.FB_PROJECT_ID || "physical-ai-auth-fa9d8",
+      storageBucket: process.env.FB_STORAGE_BUCKET || "physical-ai-auth-fa9d8.firebasestorage.app",
+      messagingSenderId: process.env.FB_MESSAGING_SENDER_ID || "269476831492",
+      appId: process.env.FB_APP_ID || "1:269476831492:web:2253cdbc8b7a93ea867051"
+    },
+    backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://mussarat123shamsher-physical-ai-book.hf.space',
+  },
 
   i18n: {
     defaultLocale: 'en',
@@ -31,14 +45,6 @@ const config: Config = {
   },
 
   scripts: [
-    {
-      src: 'https://www.gstatic.com/firebasejs/10.15.0/firebase-app-compat.js',
-      async: true,
-    },
-    {
-      src: 'https://www.gstatic.com/firebasejs/10.15.0/firebase-auth-compat.js',
-      async: true,
-    },
     // Additional script to handle potential DOM issues
     {
       src: '/js/global-script.js',

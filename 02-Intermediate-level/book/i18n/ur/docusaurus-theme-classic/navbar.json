@@ -1,26 +1,26 @@
 {
   "title": {
-    "message": "Physical AI & Humanoid Robotics",
+    "message": "فزیکل AI اور ہیومنائیڈ روبوٹکس",
     "description": "The title in the navbar"
   },
   "logo.alt": {
-    "message": "Physical AI Book Logo",
+    "message": "فزیکل AI بک لوگو",
     "description": "The alt text of navbar logo"
   },
   "item.label.Home": {
-    "message": "Home",
+    "message": "ہوم",
     "description": "Navbar item with label Home"
   },
   "item.label.Chapters": {
-    "message": "Chapters",
+    "message": "ابواب",
     "description": "Navbar item with label Chapters"
   },
   "item.label.Glossary": {
-    "message": "Glossary",
+    "message": "فرہنگ",
     "description": "Navbar item with label Glossary"
   },
   "item.label.Resources": {
-    "message": "Resources",
+    "message": "وسائل",
     "description": "Navbar item with label Resources"
   }
 }

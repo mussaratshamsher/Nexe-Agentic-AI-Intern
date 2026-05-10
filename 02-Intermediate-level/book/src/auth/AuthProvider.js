@@ -35,25 +35,12 @@ const AuthProvider = ({ children }) => {
       return auth.signInWithPopup(provider);
     },
     logout: () => auth.signOut(),
-    updatePassword: (password) => auth.currentUser.updatePassword(password),
     updateProfile: async (profile) => {
       await auth.currentUser.updateProfile(profile);
       const updatedUser = { ...auth.currentUser };
       setUser(updatedUser);
       return updatedUser;
     },
-    updateProfilePicture: async (file) => {
-      if (!auth.currentUser) return;
-      const storage = firebase.storage();
-      const fileRef = storage.ref(`profile-pics/${auth.currentUser.uid}`);
-      await fileRef.put(file);
-      const photoURL = await fileRef.getDownloadURL();
-      await auth.currentUser.updateProfile({ photoURL });
-      const updatedUser = { ...auth.currentUser };
-      setUser(updatedUser);
-      return updatedUser;
-    },
-    resetPassword: (email) => auth.sendPasswordResetEmail(email),
   };
 
   return (
