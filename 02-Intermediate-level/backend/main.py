@@ -107,6 +107,54 @@ def get_book_context(question: str) -> Dict[str, Any]:
         logger.error(f"Book search error: {e}")
         return {"context": "", "sources": []}
 
+# Tool schemas for the LLM
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": "Search the web for the latest information when the textbook is insufficient.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The search query."}
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "save_to_db",
+            "description": "Save important notes or information to the database for later reference.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "note": {"type": "string", "description": "The content to save."}
+                },
+                "required": ["note"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "send_email",
+            "description": "Send an email with specific information to a recipient.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "to_email": {"type": "string", "description": "Recipient email address."},
+                    "subject": {"type": "string", "description": "Email subject."},
+                    "body": {"type": "string", "description": "The main content of the email."}
+                },
+                "required": ["to_email", "subject", "body"]
+            }
+        }
+    }
+]
+
 # ---------------------------------
 # ROUTES
 # ---------------------------------
@@ -117,112 +165,107 @@ def health():
 
 @app.post("/query", response_model=QueryResponse)
 async def agent_query(req: QueryRequest):
-    """The main Agent loop that decides which tool to use."""
+    """The main Agent loop that uses LLM Tool Calling."""
     
-    # Step 1: Get Context from Book
+    # 1. Get initial context from the textbook
     book_data = get_book_context(req.question)
     
-    # Step 2: System Prompt for the Agent
-    system_prompt = f"""
-You are the 'Physical AI Assistant'. You have access to a textbook and several tools.
-
-AVAILABLE TOOLS:
-1. Textbook Context: Use this first.
-2. Web Search: Use if the textbook doesn't have the answer or if the user asks for 'latest' info.
-3. Save to DB: Use if the user asks to 'remember' or 'save' something.
-4. Send Email: Use if the user asks to 'email' the info.
-
-CURRENT TEXTBOOK CONTEXT:
-{book_data['context']}
-
-INSTRUCTIONS:
-- If the textbook context is sufficient, answer using it.
-- If not, you MUST mention you are searching the web and I will provide the search tool result in the next turn (Simulation).
-- ALWAYS be professional.
-"""
-
-    # For this implementation, we will use a "Single-Turn Decision" logic
-    # In a full LangGraph setup this would be multi-turn, but for this Intermediate level, 
-    # we will trigger tools based on intent detection.
-    
-    intent = req.question.lower()
-    tool_used = "Textbook"
-    final_answer = ""
-    sources = book_data['sources']
-
-    if "search" in intent or "latest" in intent or not book_data['context']:
-        tool_used = "Web Search"
-        web_results = web_search(req.question)
-        final_answer = f"I couldn't find a complete answer in the textbook, so I searched the web:\n\n{web_results}"
-    
-    elif "save" in intent or "remember" in intent:
-        tool_used = "Firebase DB"
-        status = save_to_db("user_notes", {"note": req.question, "user": req.user_email or "anonymous"})
-        final_answer = f"I have saved that information to the database for you. {status}"
-        
-    elif "email" in intent:
-        tool_used = "Resend Email"
-        
-        # Check if a specific email is mentioned in the question
-        import re
-        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', req.question)
-        target_email = email_match.group(0) if email_match else req.user_email
-        
-        if not target_email:
-            final_answer = "I'd love to email that to you, but I don't have a recipient email address. Please provide one!"
-        else:
-            # Extract content if it's a specific "Email this content to..." request
-            content_match = re.search(r'content to [\w\.-]+@[\w\.-]+\.\w+:\s*(.*)', req.question, re.IGNORECASE | re.DOTALL)
-            if content_match:
-                extracted_content = content_match.group(1).strip()
-            else:
-                # Fallback to the whole question if not in the expected format
-                extracted_content = req.question
-
-            # Limit content to ~400 words to avoid "too long" errors
-            words = extracted_content.split()
-            if len(words) > 400:
-                extracted_content = " ".join(words[:400]) + "..."
-                logger.info("Truncated email content to 400 words.")
-
-            email_body = (
-                f"Hello,\n\n"
-                f"Here is the information you requested from the Physical AI Assistant:\n\n"
-                f"--------------------------------------------------\n"
-                f"{extracted_content}\n"
-                f"--------------------------------------------------\n\n"
-                f"Best regards,\n"
-                f"Physical AI Agent"
+    messages = [
+        {
+            "role": "system", 
+            "content": (
+                "You are the 'Physical AI Assistant'. You help users understand humanoid robotics.\n"
+                f"CURRENT TEXTBOOK CONTEXT:\n{book_data['context']}\n\n"
+                "INSTRUCTIONS:\n"
+                "1. Use the textbook context first. If it answers the question, respond directly.\n"
+                "2. If the textbook is missing info, use 'web_search'.\n"
+                "3. Use 'save_to_db' if the user wants to remember or save something.\n"
+                "4. Use 'send_email' if the user wants to email information.\n"
+                "5. Be professional and concise."
             )
+        },
+        {"role": "user", "content": req.question}
+    ]
+
+    try:
+        # Initial call to see if LLM wants to use a tool
+        response = await llm_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=messages,
+            tools=TOOLS,
+            tool_choice="auto",
+            max_tokens=1024
+        )
+        
+        response_message = response.choices[0].message
+        tool_calls = response_message.tool_calls
+
+        if tool_calls:
+            # Handle tool calls
+            tool_used = "Multiple/None"
+            final_answer = ""
             
-            status = send_email(target_email, "AI Assistant Info", email_body)
-            
-            if "successfully" in status.lower():
-                final_answer = f"I've successfully sent the information to {target_email}!"
-            else:
-                final_answer = f"I tried to send the email to {target_email}, but I ran into an issue: {status}. " \
-                               f"Note: If you're using a trial Resend account, you can only send to your own registered email."
-    
-    else:
-        # Standard RAG Answer
-        try:
-            completion = await llm_client.chat.completions.create(
+            for tool_call in tool_calls:
+                function_name = tool_call.function.name
+                args = json.loads(tool_call.function.arguments)
+                tool_used = function_name
+                
+                logger.info(f"Agent decided to use tool: {function_name} with args: {args}")
+
+                if function_name == "web_search":
+                    result = web_search(args.get("query"))
+                elif function_name == "save_to_db":
+                    result = save_to_db("user_notes", {
+                        "note": args.get("note"), 
+                        "user": req.user_email or "anonymous"
+                    })
+                elif function_name == "send_email":
+                    # Use provided email or fallback to user's registered email
+                    recipient = args.get("to_email") or req.user_email
+                    if not recipient:
+                        result = "Error: No recipient email provided."
+                    else:
+                        result = send_email(recipient, args.get("subject"), args.get("body"))
+                else:
+                    result = "Error: Unknown tool."
+
+                # Append tool result to messages and get final response
+                messages.append(response_message)
+                messages.append({
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": function_name,
+                    "content": result,
+                })
+
+            # Final call to summarize tool results
+            second_response = await llm_client.chat.completions.create(
                 model="llama-3.1-8b-instant",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": req.question}
-                ],
-                temperature=0.1,
+                messages=messages
             )
-            final_answer = completion.choices[0].message.content
-        except Exception as e:
-            final_answer = f"Error generating answer: {str(e)}"
+            final_answer = second_response.choices[0].message.content
+            
+            return QueryResponse(
+                answer=final_answer,
+                sources=book_data['sources'] if "web" not in tool_used.lower() else [],
+                tool_used=tool_used
+            )
+        
+        else:
+            # No tool call needed, return standard RAG response
+            return QueryResponse(
+                answer=response_message.content,
+                sources=book_data['sources'],
+                tool_used="Textbook"
+            )
 
-    return QueryResponse(
-        answer=final_answer,
-        sources=sources if tool_used == "Textbook" else [],
-        tool_used=tool_used
-    )
+    except Exception as e:
+        logger.error(f"Query error: {e}")
+        return QueryResponse(
+            answer=f"I encountered an error while processing your request: {str(e)}",
+            sources=[],
+            tool_used="Error"
+        )
 
 @app.post("/upload")
 async def upload_document(file: UploadFile = File(...), user_email: Optional[str] = Form(None)):

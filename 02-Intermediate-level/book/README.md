@@ -1,41 +1,39 @@
-# Website
+# Physical AI & Humanoid Robotics - Interactive Book
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This is a modern, interactive textbook built with [Docusaurus](https://docusaurus.io/). It covers the principles, technologies, and practices of building intelligent humanoid robots.
 
-## Installation
+## 🤖 AI Agent Features
+This book includes an integrated **Physical AI Agent** (Chatbot) that allows readers to:
+- **Ask Questions**: Get contextual answers directly from the textbook chapters.
+- **Search the Web**: Access the latest research and news beyond the book's content.
+- **Save Notes**: Persist important insights directly to a personal database (Firebase).
+- **Email Info**: Send chapter summaries or AI answers to your inbox.
+- **Upload Knowledge**: Dynamically add your own notes or research papers to the agent's memory.
 
+## 🛠️ Tech Stack
+- **Frontend**: React, Docusaurus, TypeScript, Firebase Auth.
+- **Backend**: FastAPI (Python), Llama-3.1 (via Groq), Qdrant Vector DB.
+- **Tools**: Tavily (Search), Resend (Email), Firestore (DB).
+
+## 🚀 Getting Started
+
+### 1. Installation
 ```bash
-yarn
+npm install
 ```
 
-## Local Development
+### 2. Environment Setup
+Create a `.env` file based on the provided configuration for Backend URL and Firebase keys.
 
+### 3. Local Development
 ```bash
-yarn start
+npm start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
-
+### 4. Build for Production
 ```bash
-yarn build
+npm run build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-## Deployment
-
-Using SSH:
-
-```bash
-USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+## 🌐 Deployment
+The frontend is optimized for [Vercel](https://vercel.com/). Ensure all environment variables are configured in the Vercel project settings.
