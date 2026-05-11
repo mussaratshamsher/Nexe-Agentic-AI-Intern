@@ -52,6 +52,19 @@
   transform: scale(1) translateY(0);
 }
 
+@media (max-width: 480px) {
+  .chatbotContainer {
+    bottom: 16px;
+    right: 16px;
+  }
+  
+  .chatbotWindow {
+    width: calc(100vw - 32px);
+    height: calc(80vh);
+    max-height: 600px;
+  }
+}
+
 /* Header */
 .chatbotHeader {
   background: linear-gradient(

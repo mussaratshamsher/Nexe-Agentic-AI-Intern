@@ -12,3 +12,4 @@ tavily-python
 resend
 firebase-admin
 python-multipart
+pypdf

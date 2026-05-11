@@ -58,9 +58,21 @@ init_firebase()
 # ---------------------------------
 app = FastAPI(title="Multi-Tool Physical AI Agent")
 
+# Explicitly define allowed origins for production and local development
+# Note: When allow_credentials=True, allow_origins cannot be ["*"] in many browsers
+allowed_origins = [
+    "https://humanoid-robotics-book-sepia.vercel.app",
+    "https://physical-ai-book.vercel.app",
+    "https://mussarat123shamsher-physical-ai-book.hf.space",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -205,6 +217,9 @@ async def agent_query(req: QueryRequest):
             tool_used = "Multiple/None"
             final_answer = ""
             
+            # Append the assistant's message with tool calls once
+            messages.append(response_message)
+            
             for tool_call in tool_calls:
                 function_name = tool_call.function.name
                 args = json.loads(tool_call.function.arguments)
@@ -229,8 +244,7 @@ async def agent_query(req: QueryRequest):
                 else:
                     result = "Error: Unknown tool."
 
-                # Append tool result to messages and get final response
-                messages.append(response_message)
+                # Append tool result message
                 messages.append({
                     "tool_call_id": tool_call.id,
                     "role": "tool",
@@ -269,25 +283,61 @@ async def agent_query(req: QueryRequest):
 
 @app.post("/upload")
 async def upload_document(file: UploadFile = File(...), user_email: Optional[str] = Form(None)):
-    """Dynamically upload and embed a new document and save metadata."""
+    """Dynamically upload, chunk, embed a new document and save metadata."""
     try:
-        content = await file.read()
-        text = content.decode("utf-8")
-        
-        # Simple embedding and upsert
-        vector = embedding_model.encode(text).tolist()
         from qdrant_client.models import PointStruct
+        import io
+        
+        content = await file.read()
+        text = ""
+        
+        # 1. Extract text based on file type
+        if file.filename.endswith(".pdf"):
+            try:
+                from pypdf import PdfReader
+                pdf_file = io.BytesIO(content)
+                reader = PdfReader(pdf_file)
+                for page in reader.pages:
+                    text += page.extract_text() + "\n"
+            except ImportError:
+                raise HTTPException(status_code=500, detail="PDF support (pypdf) not installed on server.")
+        else:
+            # Assume text/md
+            text = content.decode("utf-8")
+            
+        if not text.strip():
+            raise HTTPException(status_code=400, detail="No extractable text found in file.")
+
+        # 2. Chunk the text (using the logic from embed.py for consistency)
+        def chunk_text(text, size=400, overlap=50):
+            words = text.split()
+            for i in range(0, len(words), size - overlap):
+                yield " ".join(words[i:i + size])
+        
+        chunks = list(chunk_text(text))
+        if not chunks:
+            raise HTTPException(status_code=400, detail="File content too short to index.")
+
+        # 3. Embed and Upsert chunks
+        points = []
+        for chunk in chunks:
+            vector = embedding_model.encode(chunk).tolist()
+            points.append(PointStruct(
+                id=str(uuid.uuid4()),
+                vector=vector,
+                payload={
+                    "text": chunk, 
+                    "source": file.filename, 
+                    "user": user_email or "anonymous"
+                }
+            ))
         
         qdrant.upsert(
             collection_name=COLLECTION_NAME,
-            points=[PointStruct(
-                id=str(uuid.uuid4()),
-                vector=vector,
-                payload={"text": text, "source": file.filename, "user": user_email or "anonymous"}
-            )]
+            points=points
         )
         
-        # Save metadata to Firestore for visibility
+        # 4. Save metadata to Firestore
         save_to_db("uploaded_files", {
             "filename": file.filename,
             "user": user_email or "anonymous",
@@ -298,7 +348,7 @@ async def upload_document(file: UploadFile = File(...), user_email: Optional[str
             "timestamp": firestore.SERVER_TIMESTAMP
         })
         
-        return {"status": "success", "message": f"Uploaded and indexed {file.filename}"}
+        return {"status": "success", "message": f"Uploaded, chunked ({len(chunks)} parts), and indexed {file.filename}"}
     except Exception as e:
         logger.error(f"Upload error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

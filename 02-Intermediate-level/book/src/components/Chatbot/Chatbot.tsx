@@ -300,7 +300,7 @@ const Chatbot = () => {
                   ref={fileInputRef}
                   style={{ display: 'none' }}
                   onChange={handleFileUpload}
-                  accept=".txt,.md"
+                  accept=".txt,.md,.pdf"
                 />
                 <button 
                   className={styles.uploadButton} 

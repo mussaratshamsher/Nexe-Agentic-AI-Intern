@@ -9,7 +9,7 @@ const config: Config = {
   favicon: 'img/favicon.png',
 
   // ✅ Vercel-safe (Update this when you have a production domain)
-  url: process.env.URL || 'https://physical-ai-book.vercel.app',
+  url: process.env.URL || 'https://humanoid-robotics-book-sepia.vercel.app',
   baseUrl: '/',
   trailingSlash: false,
 
