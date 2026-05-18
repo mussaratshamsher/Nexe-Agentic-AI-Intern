@@ -16,7 +16,11 @@ st.title("🤖 AI Agent")
 
 # Configuration from Environment Variables
 # Try to get from st.secrets (Streamlit Cloud) first, then os.getenv (local/standard env)
-GROQ_API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = None
+try:
+    GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
+except Exception:
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 BASE_URL = "https://api.groq.com/openai/v1"
 MODEL_NAME = "llama-3.3-70b-versatile"
 

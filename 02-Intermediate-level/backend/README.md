@@ -1,3 +1,14 @@
+---
+title: Physical AI Agent Backend
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: docker
+sdk_version: "3.10"
+app_file: main.py
+pinned: false
+---
+
 # Physical AI Agent - Backend (Intermediate Level)
 
 This is the FastAPI backend for the Physical AI Agent. it provides RAG (Retrieval-Augmented Generation) capabilities and a multi-tool agent system.
