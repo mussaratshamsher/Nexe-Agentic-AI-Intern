@@ -1,48 +1,107 @@
-from typing import Dict, Any, Optional
-from langchain_core.tools import tool
-from pydantic import BaseModel, Field
+import httpx
+import base64
+from ..config.settings import settings
+from ..logs.execution_logger import ExecutionLogger
+from .gmail_tools import GmailService
 
-from app.logs.logger import setup_logger
+class CommunicationTools:
+    @staticmethod
+    async def send_email(to_email: str, subject: str, body: str, thread_id: str = None) -> bool:
+        ExecutionLogger.log("Communication", f"Sending email to {to_email}", f"Subject: {subject}")
+        return await GmailService.send_email(to_email, subject, body, thread_id)
 
-logger = setup_logger(__name__)
+    @staticmethod
+    async def send_whatsapp_message(phone: str, message: str) -> bool:
+        ExecutionLogger.log("Communication", f"Sending WhatsApp to {phone}", f"Message: {message[:20]}...")
+        
+        # Try Twilio first if configured
+        if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN:
+            return await CommunicationTools._send_twilio_whatsapp(phone, message)
+            
+        # Fallback to Ultramsg
+        if settings.ULTRAMSG_INSTANCE_ID and settings.ULTRAMSG_TOKEN:
+            return await CommunicationTools._send_ultramsg_whatsapp(phone, message)
 
-# Mock communication services
-class MockEmailService:
-    async def send_email(self, recipient: str, subject: str, body: str) -> Dict[str, Any]:
-        logger.info(f"Mock: Sending email to {recipient} - Subject: {subject}")
-        return {"status": "sent", "recipient": recipient, "subject": subject}
+        ExecutionLogger.log("Communication", "WhatsApp skipped", "No WhatsApp API configured (Twilio or Ultramsg)")
+        return False
 
-class MockWhatsAppService:
-    async def send_whatsapp_message(self, recipient_phone: str, message: str) -> Dict[str, Any]:
-        logger.info(f"Mock: Sending WhatsApp message to {recipient_phone}")
-        return {"status": "sent", "recipient_phone": recipient_phone}
+    @staticmethod
+    async def _send_twilio_whatsapp(phone: str, message: str) -> bool:
+        account_sid = settings.TWILIO_ACCOUNT_SID
+        auth_token = settings.TWILIO_AUTH_TOKEN
+        # Twilio WhatsApp numbers must be prefixed with 'whatsapp:'
+        from_phone = settings.FROM_PHONE_NUMBER or settings.TWILIO_SANDBOX_NUMBER
+        if not from_phone.startswith("whatsapp:"):
+            from_phone = f"whatsapp:{from_phone}"
+            
+        to_phone = phone
+        if not to_phone.startswith("whatsapp:"):
+            to_phone = f"whatsapp:{to_phone}"
 
-email_service = MockEmailService()
-whatsapp_service = MockWhatsAppService()
+        url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
+        
+        auth = base64.b64encode(f"{account_sid}:{auth_token}".encode()).decode()
+        headers = {
+            "Authorization": f"Basic {auth}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        
+        payload = {
+            "From": from_phone,
+            "To": to_phone,
+            "Body": message
+        }
 
-# --- Email Tools ---
-class SendEmailArgs(BaseModel):
-    recipient: str = Field(..., description="The email address of the recipient")
-    subject: str = Field(..., description="The subject line of the email")
-    body: str = Field(..., description="The main content of the email")
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, data=payload, headers=headers)
+                if response.status_code in [200, 201]:
+                    return True
+                else:
+                    ExecutionLogger.log("Communication", "Twilio failed", f"Status: {response.status_code}, Body: {response.text}")
+                    return False
+        except Exception as e:
+            ExecutionLogger.log("Communication", "Twilio error", str(e))
+            return False
 
-@tool(args_schema=SendEmailArgs, tool_name="send_email")
-async def send_email(recipient: str, subject: str, body: str) -> Dict[str, Any]:
-    """
-    Sends an email to a specified recipient.
-    Use this to communicate information or updates via email.
-    """
-    return await email_service.send_email(recipient=recipient, subject=subject, body=body)
+    @staticmethod
+    async def _send_ultramsg_whatsapp(phone: str, message: str) -> bool:
+        # Normalize phone number (ensure no spaces or extra characters)
+        clean_phone = "".join(filter(str.isdigit, phone))
+        
+        url = f"https://api.ultramsg.com/{settings.ULTRAMSG_INSTANCE_ID}/messages/chat"
+        
+        payload = {
+            "token": settings.ULTRAMSG_TOKEN,
+            "to": clean_phone,
+            "body": message,
+            "priority": 10
+        }
 
-# --- WhatsApp Tools ---
-class SendWhatsAppMessageArgs(BaseModel):
-    recipient_phone: str = Field(..., description="The phone number of the recipient (e.g., '+1234567890')")
-    message: str = Field(..., description="The content of the WhatsApp message")
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
 
-@tool(args_schema=SendWhatsAppMessageArgs, tool_name="send_whatsapp_message")
-async def send_whatsapp_message(recipient_phone: str, message: str) -> Dict[str, Any]:
-    """
-    Sends a WhatsApp message to a specified phone number.
-    Use this for real-time notifications or direct communication.
-    """
-    return await whatsapp_service.send_whatsapp_message(recipient_phone=recipient_phone, message=message)
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, data=payload, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("sent") == "true" or data.get("message") == "ok":
+                        return True
+                    else:
+                        ExecutionLogger.log("Communication", "Ultramsg error", f"Data: {data}")
+                        return False
+                else:
+                    ExecutionLogger.log("Communication", "Ultramsg failed", f"Status: {response.status_code}, Body: {response.text}")
+                    return False
+        except Exception as e:
+            ExecutionLogger.log("Communication", "Ultramsg error", str(e))
+            return False
+
+    @staticmethod
+    async def notify_admin(message: str) -> bool:
+        """Sends a notification to the admin via WhatsApp (for sensitive tasks)"""
+        if settings.MY_PHONE_NUMBER:
+            return await CommunicationTools.send_whatsapp_message(settings.MY_PHONE_NUMBER, message)
+        return False

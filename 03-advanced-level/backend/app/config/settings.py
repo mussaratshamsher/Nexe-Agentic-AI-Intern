@@ -1,61 +1,37 @@
-import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
-    """
-    Application settings managed by Pydantic-Settings.
-    Loads environment variables from a .env file and validates them.
-    """
-    model_config = SettingsConfigDict(
-        env_file='.env',              # Load environment variables from .env file
-        env_file_encoding='utf-8',
-        extra='ignore'                 # Ignore any extra environment variables
-    )
+    GROQ_API_KEY: str
+    DATABASE_URL: str
+    JWT_SECRET: str
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
+    MODEL_NAME: str = "llama-3.3-70b-versatile"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    # Application
-    app_name: str = "AI Business Operations Manager"
-    api_v1_str: str = "/api/v1"
-    debug: bool = False
-    secret_key: str
+    # Phase 4 Integrations
+    GMAIL_CREDENTIALS_PATH: str = "credentials.json"
+    GMAIL_TOKEN_PATH: str = "token.json"
+    GMAIL_CREDENTIALS_JSON: Optional[str] = None
+    GMAIL_TOKEN_JSON: Optional[str] = None
+    
+    # WhatsApp - Ultramsg
+    ULTRAMSG_INSTANCE_ID: Optional[str] = None
+    ULTRAMSG_TOKEN: Optional[str] = None
+    
+    # WhatsApp - Twilio
+    TWILIO_ACCOUNT_SID: Optional[str] = None
+    TWILIO_AUTH_TOKEN: Optional[str] = None
+    TWILIO_SANDBOX_NUMBER: Optional[str] = None
+    FROM_PHONE_NUMBER: Optional[str] = None
+    TO_PHONE_NUMBER: Optional[str] = None
 
-    # OpenAI
-    openai_api_key: str
-    openai_org_id: Optional[str] = None
+    @property
+    def MY_PHONE_NUMBER(self) -> Optional[str]:
+        return self.TO_PHONE_NUMBER
 
-    # Supabase
-    supabase_url: str
-    supabase_key: str # Anon key for client-side use (if needed)
-    supabase_service_role_key: str # For backend operations
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # JWT
-    jwt_secret: str
-    jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
-    refresh_token_expire_DAYS: int = 7
-
-    # Database
-    # Example format: postgresql+asyncpg://user:password@host:port/database
-    database_url: str
-
-    # Logging
-    log_level: str = "INFO"
-    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-
-    # Sentry (optional)
-    sentry_dsn: Optional[str] = None
-
-    # Email (mocked initially, but good to have config)
-    # email_use_tls: bool = True
-    # email_port: int = 587
-    # email_host: str = "smtp.example.com"
-    # email_host_user: str = "noreply@yourdomain.com"
-    # email_host_password: str = "your_email_password" # Use environment variables for sensitive data
-    # email_sender: str = "noreply@yourdomain.com"
-
-# Singleton instance of settings
-# This ensures settings are loaded only once and are globally accessible.
-# However, it's generally better practice to inject settings where needed.
-# For simplicity, we'll create it here, but consider dependency injection later.
 settings = Settings()
-

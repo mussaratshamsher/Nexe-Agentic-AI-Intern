@@ -1,31 +1,17 @@
-from typing import Dict, Any, List, Optional
-from langchain_core.tools import tool
-from pydantic import BaseModel, Field
+from typing import List, Dict
+from ..logs.execution_logger import ExecutionLogger
+from ..repositories.knowledge_repository import KnowledgeRepository
 
-from app.logs.logger import setup_logger
+class KnowledgeTools:
+    def __init__(self, db_session):
+        self.kb_repo = KnowledgeRepository(db_session)
 
-logger = setup_logger(__name__)
-
-# Mock knowledge base service
-class MockKnowledgeBaseService:
-    def search(self, query: str) -> Dict[str, Any]:
-        logger.info(f"Mock: Searching knowledge base for query: '{query}'")
-        if "AI Business Operations Manager" in query:
-            return {"query": query, "results": [{"title": "AI BOM Overview", "content": "The AI Business Operations Manager is a SaaS platform designed to automate business operations using AI agents."}]}
-        elif "FastAPI" in query:
-            return {"query": query, "results": [{"title": "FastAPI Documentation", "content": "FastAPI is a modern, fast (high-performance) web framework for building APIs with Python 3.7+."}]}
-        else:
-            return {"query": query, "results": []}
-
-knowledge_base_service = MockKnowledgeBaseService()
-
-class SearchKnowledgeBaseArgs(BaseModel):
-    query: str = Field(..., description="The search query for the knowledge base")
-
-@tool(args_schema=SearchKnowledgeBaseArgs, tool_name="search_knowledge_base")
-def search_knowledge_base(query: str) -> Dict[str, Any]:
-    """
-    Searches the internal knowledge base for information.
-    Useful for answering questions about the platform, technologies, or general business processes.
-    """
-    return knowledge_base_service.search(query=query)
+    async def search_knowledge_base(self, query: str) -> str:
+        await ExecutionLogger.log("Knowledge Base", f"RAG search for: {query}")
+        results = await self.kb_repo.search(query)
+        
+        if not results:
+            return "No specific information found in the internal knowledge base. Please check external sources or escalate to a manager."
+        
+        formatted_results = "\n---\n".join([f"Source: {r.title}\nContent: {r.content}" for r in results])
+        return f"Found relevant information in internal knowledge base:\n{formatted_results}"

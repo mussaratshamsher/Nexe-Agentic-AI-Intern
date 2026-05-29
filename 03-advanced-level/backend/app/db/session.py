@@ -1,18 +1,25 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Generator
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
+from app.config.settings import settings
 
-async def get_db_session() -> Generator[AsyncSession, None, None]:
-    """
-    Dependency to provide an async database session.
-    This function yields a session and ensures it's closed afterward.
-    """
-    # This part is duplicated from database.py to maintain module separation,
-    # but ideally, this dependency function would be imported from database.py.
-    # For clarity, we'll keep it here for now and refactor later if needed.
-    from app.db.database import async_session_maker
-    
-    db_session = async_session_maker()
-    try:
-        yield db_session
-    finally:
-        await db_session.close()
+# Force usage of asyncpg and clean URL
+url = settings.DATABASE_URL.replace("postgresql+psycopg2", "postgresql+asyncpg")
+# If it's just postgresql (no driver specified), append +asyncpg
+if "://" in url and "+" not in url.split("://")[0]:
+    url = url.replace("postgresql://", "postgresql+asyncpg://")
+
+# Remove sslmode=require as asyncpg doesn't support it in the query string
+if "sslmode=" in url:
+    import re
+    url = re.sub(r'[?&]sslmode=[^&]*', '', url)
+
+engine = create_async_engine(url, echo=True, pool_pre_ping=True)
+AsyncSessionLocal = sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
+
+Base = declarative_base()
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
